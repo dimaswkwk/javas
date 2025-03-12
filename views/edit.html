@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.bootstrap5.css">
+  </head>
+  <style>
+    body{
+        background-color: #c6e5fa;
+    }
+    footer{
+      background-color: #c6e5fa;
+      color: rgb(0, 0, 0);
+      padding: 100px 1;
+      text-align: center;
+     
+    }
+</style>
+<body>
+    <nav class="navbar navbar-expand-lg bg-light">
+        <div class="container-fluid">
+          <a class="navbar-brand" ><i class="bi bi-person"></i>Siswa</a>
+          <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <a class="nav-link breadcrumb-item"><i class="bi bi-house"></i></a>
+                <li class="breadcrumb-item active" aria-current="page">Preview</li>
+                <li class="breadcrumb-item active" aria-current="page">edit Data Siswa</li>
+           </ol>
+         
+          </div>
+        </div>
+      </nav>
+    </nav>
+    <div class="container mt-5 w-25">
+       <div class="shadow p-1 mb-4 card card-transparent">
+        <div class="card-body">
+            <center><h2>edit Data</h2></center>
+    
+            <form id="editForm">
+                <div class="mb-2">
+                    <label for="foto" class="form-label">Foto anda</label>
+                    <input type="file" class="form-control" name="foto" id="foto" required>
+                </div>
+                <div class="mb-3">
+                    <label for="namaSiswa" class="form-label">Nama Lengkap</label>
+                    <input type="text" class="form-control" name="namaLengkap" id="namaLengkap" placeholder="Nama lengkap" required>
+                </div>
+        
+                <div class="mb-3">
+                    <label for="jenisKelamin" class="form-label">Jenis kelamin</label>
+                    <select class="form-select" class="form-control" name="jenisKelamin" id="jenisKelamin" placeholder="jenis kelamin" required>
+                    <option value="laki-laki">laki-laki</option>
+                    <option value="perempuan">perempuan</option>
+                       </select>
+        
+                </div>
+         
+                <div class="my-3">
+                    <label for="tanggalDaftar" class="form-label">Tanggal daftar</label>
+                    <input type="date" class="form-control" name="tanggalDaftar" id="tanggalDaftar" placeholder="" required>
+                </div>
+        
+                <div class="mb-3">
+                    <label for="foto" class="form-label">Kelas</label>
+                    <input type="text" class="form-control" name="kelas" id="kelas" placeholder="Masukkan kelas berapa ">
+                </div>
+        
+                <button type="submit" class="btn btn-primary">Simpan</button>
+                <a href="index.html" class="btn btn-secondary">Kembali</a>
+            </form>
+            <div></div>
+            
+</div>
+        </div>
+    </div>
+    <footer>
+        <p>&copy;2025 dimaspram. ALL Right Reserved</p>
+      </footer>
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const id_siswa = urlParams.get("id");
+
+    if (!id_siswa) {
+        alert("ID siswa tidak ditemukan.");
+        return;
+    }
+
+    fetch(`/siswa/${id_siswa}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Gagal mengambil data siswa");
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.length > 0) {
+                const tanggalRaw = data[0].tanggal_daftar;
+                const tanggal = new Date(tanggalRaw).toISOString().split("T")[0];
+                
+                document.getElementById("namaLengkap").value = data[0].nama_lengkap;
+                document.getElementById("jenisKelamin").value = data[0].jenis_kelamin;
+                document.getElementById("tanggalDaftar").value = tanggal;
+                document.getElementById("kelas").value = data[0].kelas;
+            }
+        })
+        .catch(error => {
+            alert("Terjadi kesalahan: " + error.message);
+        });
+
+    document.getElementById("editForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const updateData = new FormData();
+        const fileInput = document.getElementById("foto").files[0];
+
+        if (fileInput) {
+            updateData.append("foto", fileInput);
+        }
+        updateData.append("nama", document.getElementById("namaLengkap").value);
+        updateData.append("jenis_kelamin", document.getElementById("jenisKelamin").value);
+        updateData.append("tanggal", document.getElementById("tanggalDaftar").value);
+        updateData.append("kelas", document.getElementById("kelas").value);
+
+        fetch(`/siswa/${id_siswa}`, {
+            method: "PUT",
+            body: updateData
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Gagal memperbarui data");
+                }
+                return response.text();
+            })
+            .then(message => {
+                localStorage.setItem("successMessage", "Data berhasil diupdate");
+                window.location.href = "index.html";
+            })
+            .catch(error => {
+                alert("Terjadi kesalahan: " + error.message);
+            });
+    });
+});
+
+    </script>
+</body>
